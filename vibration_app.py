@@ -82,7 +82,7 @@ with col_graph:
 
     ax.set_xlabel("시간 (s)")
     ax.set_ylabel("변위 (m)")
-    ax.set_title("질량-스프링-댐퍼 시스템의 진동")
+    ax.set_title("질량-스프링-댐퍼 시스템의 진동 응답")
 
     ax.set_xlim(0, 10)
     ax.set_xticks(np.arange(0, 11, 1))
