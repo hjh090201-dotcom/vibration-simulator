@@ -1,34 +1,10 @@
 import streamlit as st
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.font_manager as fm
-import matplotlib as mpl
-import os
+import pandas as pd
+import altair as alt
 
 # ===============================
-# 한글 폰트 자동 설정 (Streamlit Cloud 대응)
-# ===============================
-font_path = None
-
-possible_fonts = [
-    "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",
-    "/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf",
-    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
-]
-
-for f in possible_fonts:
-    if os.path.exists(f):
-        font_path = f
-        break
-
-if font_path:
-    font_prop = fm.FontProperties(fname=font_path)
-    mpl.rcParams["font.family"] = font_prop.get_name()
-
-mpl.rcParams["axes.unicode_minus"] = False
-
-# ===============================
-# Streamlit 페이지 설정
+# 페이지 설정
 # ===============================
 st.set_page_config(layout="wide")
 st.title("질량-스프링-댐퍼 진동 시뮬레이터")
@@ -53,9 +29,6 @@ t_max = 10
 dt = 0.01
 t = np.arange(0, t_max, dt)
 
-# ===============================
-# 초기화
-# ===============================
 x = np.zeros(len(t))
 v = np.zeros(len(t))
 x[0] = x0
@@ -64,28 +37,44 @@ x[0] = x0
 # 진동 시뮬레이션
 # ===============================
 for i in range(1, len(t)):
-    F_spring = -k * x[i - 1]
-    F_damper = -c * v[i - 1]
+    F_spring = -k * x[i-1]
+    F_damper = -c * v[i-1]
     a = (F_spring + F_damper) / m
 
-    v[i] = v[i - 1] + a * dt
-    x[i] = x[i - 1] + v[i] * dt
+    v[i] = v[i-1] + a * dt
+    x[i] = x[i-1] + v[i] * dt
 
 # ===============================
-# 그래프
+# 데이터프레임
+# ===============================
+df = pd.DataFrame({
+    "시간 (s)": t,
+    "변위 (m)": x
+})
+
+# ===============================
+# 그래프 (Altair)
 # ===============================
 with col1:
     st.header("진동 그래프")
 
-    fig, ax = plt.subplots(figsize=(8, 4))
-    ax.plot(t, x)
+    chart = (
+        alt.Chart(df)
+        .mark_line()
+        .encode(
+            x=alt.X("시간 (s)", title="시간 (s)"),
+            y=alt.Y("변위 (m)", title="변위 (m)")
+        )
+        .properties(
+            title="질량-스프링-댐퍼 시스템의 진동",
+            width=700,
+            height=400
+        )
+    )
 
-    ax.set_title("질량-스프링-댐퍼 시스템의 진동")
-    ax.set_xlabel("시간 (s)")
-    ax.set_ylabel("변위 (m)")
-    ax.grid(True)
+    st.altair_chart(chart, use_container_width=True)
 
-    st.pyplot(fig)
+
 
 
 
