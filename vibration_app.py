@@ -1,13 +1,31 @@
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
 import matplotlib as mpl
+import os
 
 # ===============================
-# 한글 폰트 설정 (중요)
+# 한글 폰트 자동 설정 (Streamlit Cloud 대응)
 # ===============================
-mpl.rcParams['font.family'] = 'NanumGothic'
-mpl.rcParams['axes.unicode_minus'] = False
+font_path = None
+
+possible_fonts = [
+    "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",
+    "/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+]
+
+for f in possible_fonts:
+    if os.path.exists(f):
+        font_path = f
+        break
+
+if font_path:
+    font_prop = fm.FontProperties(fname=font_path)
+    mpl.rcParams["font.family"] = font_prop.get_name()
+
+mpl.rcParams["axes.unicode_minus"] = False
 
 # ===============================
 # Streamlit 페이지 설정
@@ -16,7 +34,7 @@ st.set_page_config(layout="wide")
 st.title("질량-스프링-댐퍼 진동 시뮬레이터")
 
 # ===============================
-# 레이아웃 (왼쪽: 그래프 / 오른쪽: 변수)
+# 레이아웃
 # ===============================
 col1, col2 = st.columns([2, 1])
 
@@ -36,28 +54,25 @@ dt = 0.01
 t = np.arange(0, t_max, dt)
 
 # ===============================
-# 배열 초기화
+# 초기화
 # ===============================
 x = np.zeros(len(t))
 v = np.zeros(len(t))
-
 x[0] = x0
-v[0] = 0
 
 # ===============================
-# 진동 시뮬레이션 (수치해석)
+# 진동 시뮬레이션
 # ===============================
 for i in range(1, len(t)):
-    F_spring = -k * x[i-1]
-    F_damper = -c * v[i-1]
-    F_total = F_spring + F_damper
+    F_spring = -k * x[i - 1]
+    F_damper = -c * v[i - 1]
+    a = (F_spring + F_damper) / m
 
-    a = F_total / m
-    v[i] = v[i-1] + a * dt
-    x[i] = x[i-1] + v[i] * dt
+    v[i] = v[i - 1] + a * dt
+    x[i] = x[i - 1] + v[i] * dt
 
 # ===============================
-# 그래프 출력
+# 그래프
 # ===============================
 with col1:
     st.header("진동 그래프")
@@ -71,4 +86,6 @@ with col1:
     ax.grid(True)
 
     st.pyplot(fig)
+
+
 
